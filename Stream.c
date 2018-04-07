@@ -247,8 +247,16 @@ void ReadFromFile(FILE* fp, PSTUINFO* stStuInfo, PINFOID pstInfoID, int iID2)
 	rewind(fp);
 	while (1)
 	{
-		while ('\0' == fgetc(fp));
-		
+		char ch = '\0';
+		int iRet = 0;
+		/*while ('\0' == fgetc(fp));*/
+		while ('\0' == (ch = fgetc(fp)));
+		fseek(fp, -1, SEEK_CUR);	//多读了一位
+		if (EOF == ch)
+		{
+			iRet = DELERR;
+			break;
+		}
 		fread(pstInfoID, INFOIDSIZ, 1, fp);
 		if (iID2 != pstInfoID->m_iID)
 		{
