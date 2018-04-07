@@ -33,7 +33,18 @@ void ErrProc(int ErrNub)
 		printf("呃...选错啦ㄟ( ▔, ▔ )ㄏ\n");
 		break;
 	}
-	
+	case INITERR:
+	{
+		printf("System wrong! Database doesn't exist！");
+		exit(-1);
+		break;
+	}
+	case FWRITE:
+	{
+		printf("System wrong! Database doesn't exist！");
+		exit(-1);
+		break;
+	}
 	}
 	return;
 }
@@ -52,11 +63,11 @@ void GetStuInfoUI(enum emStuInfo emStuType)
 		printf("请输入学生姓名：");
 		break;
 	}
-	case STUPHNUB:
+	/*case STUPHNUB:
 	{
 		printf("请输入学生的电话：");
 		break;
-	}
+	}*/
 	case STUCSCOR:
 	{
 		printf("请输入学生的C语言成绩：");
@@ -70,6 +81,7 @@ void GetStuInfoUI(enum emStuInfo emStuType)
 	case STUGENDER:
 	{
 		printf("请输入学生性别：");
+		break;
 	}
 	}
 }

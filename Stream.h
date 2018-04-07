@@ -1,11 +1,19 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <io.h>
 # include <stdio.h>
 # include <string.h>
 # define EXIT 0
 # define WRONGOPT -2
-
+# define INITERR -5
+# define DELERR -3
 # ifndef WRONGSTUINFO
 # define WRONGSTUINFO -1
 # endif // !STUINFO
+
+# ifndef FWRITE
+# define FWRITE -4
+# endif // !FWRITE
 
 # define MAN 1
 # define WOMAN 2
@@ -16,14 +24,14 @@ enum emStuInfo
 	STUID,
 	STUNAME,
 	STUBIRTH,
-	STUPHNUB,
+	/*STUPHNUB,*/
 	STUCSCOR,
 	STUGENDER
 }emStuInfo;
 
 
 /*
-szPhoneNub[1]的位置为szPhoneNub[1] +iNameLen - 1；
+
 */
 typedef struct tagSTUINFO
 {
@@ -37,10 +45,30 @@ typedef struct tagSTUINFO
 		int iDate;
 	}stStuBirth;
 	int iNameLen;
-	int iPhoneLen;
+	/*int iPhoneLen;*/
 	char szStuName[1];
-	char szPhoneNub[1];
+	//char szPhoneNub[1];
 }STUINFO, *PSTUINFO;
+# define INFOIDSIZ 8
+/*
+存放学生信息结构体的长度和编号
+结构体大小：8
+*/
+typedef struct tagINFOID
+{
+	int m_iID;
+	int m_iLen;
+}INFOID, *PINFOID;
 
 int GetOption();
-int ShowStuInfo(PSTUINFO pstStuInfo);
+int GetStuInfo(PSTUINFO* stStuInfo, PINFOID pstInfoID);
+int ShowStuInfo(PSTUINFO pstStuInfo, PINFOID pstInfoID);
+void InitFile(FILE** fp);
+
+int WriteToFile(FILE *fp, PSTUINFO* pstStuInfo, PINFOID pstInfoID);
+int FlushStu(PSTUINFO* pstStuInfo, PINFOID pstInfoID);
+void ReadFromFile(FILE* fp, PSTUINFO* stStuInfo, PINFOID pstInfoID, int iID2);
+void FindSpace(FILE* fp, PINFOID pstInfoID);
+void CloseFile(FILE** fp);
+
+int Delete(FILE *fp, PINFOID pstInfoID, int iID2);
