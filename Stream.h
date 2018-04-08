@@ -11,7 +11,7 @@
 # endif // !STUINFO
 
 # ifndef NSEARCH
-# define NSEARCH 6
+# define NSEARCH -6
 # endif	// !NSEARCH
 
 # ifndef FWRITE
@@ -74,10 +74,12 @@ int FlushStu(PSTUINFO* pstStuInfo, PINFOID pstInfoID);
 void ReadFromFile(FILE* fp, PSTUINFO* stStuInfo, PINFOID pstInfoID, int iID2);
 void FindSpace(FILE* fp, PINFOID pstInfoID);
 void CloseFile(FILE** fp);
-
+int ModifyStu(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID);
 int Delete(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID);
 int SearchByStr(void* strInfo, FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo, int iOption);
 
 void WriteInFile(FILE* fp);
 
 int ShowAllInfo(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo);
+void Statistics(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo);
+void Storage(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo);

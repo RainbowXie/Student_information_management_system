@@ -103,7 +103,86 @@ void SearchUI(int iOption)
 	printf("请选择：");
 }
 
-void DeleteUI()
+void DeleteUI(int iOption)
 {
-	printf("您要删除的学生是：");
+	if (1 == iOption)
+	{
+		printf("请输入学生学号：\n");
+	}
+	else if (0 == iOption)
+	{
+		printf("您要删除的学生是：\n");
+	}
+	else if (2 == iOption)
+	{
+		printf("是否删除：\n");
+		printf("1.删除\n");
+		printf("0.返回\n");
+		printf("请选择：");
+	}
+	else if (3 == iOption)
+	{
+		printf("错误选项，请重新选择！\n");
+	}
+	else if (4 == iOption)
+	{
+		printf("删除成功！\n");
+	}
+	else if (5 == iOption)
+	{
+		printf("删除失败！\n");
+	}
+	return;
+}
+
+void ModifyUI(int iOption)
+{
+	if (1 == iOption)
+	{
+		printf("请输入学生学号：\n");
+	}
+	else if (0 == iOption)
+	{
+		printf("您要修改的学生是：\n");
+	}
+	else if (2 == iOption)
+	{
+		printf("是否修改：\n");
+		printf("1.修改\n");
+		printf("0.返回\n");
+		printf("请选择：");
+	}
+	else if (3 == iOption)
+	{
+		printf("错误选项，请重新选择！\n");
+	}
+	else if (4 == iOption)
+	{
+		printf("修改成功！\n");
+	}
+	else if (5 == iOption)
+	{
+		printf("修改失败！\n");
+	}
+	return;
+}
+
+void StorageUI(int iOption)
+{
+	switch (iOption)
+	{
+	case 0:
+	{
+		printf("可以进行碎片整理。是否整理？\r\n");
+		printf("1.是\r\n");
+		printf("0.返回\r\n");
+		printf("请选择：\r\n");
+		break;
+	}
+	case 3:
+	{
+		printf("错误选项，请重新选择！\n");
+		break;
+	}
+	}
 }

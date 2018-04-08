@@ -32,4 +32,7 @@ int MainInterface(void);
 void ErrProc(int ErrNub);
 void GetStuInfoUI(enum emStuInfo emStuType);
 void SearchUI(int iOption);
-void DeleteUI();
+void DeleteUI(int iOption);
+void ModifyUI(int iOption);
+
+void StorageUI(int iOption);

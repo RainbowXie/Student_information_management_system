@@ -25,7 +25,7 @@ int main()
 		MainInterface();
 
 		iOption = GetOption();
-
+		system("cls");
 		switch (iOption)
 		{
 		case 1:
@@ -34,16 +34,32 @@ int main()
 			GetStuInfo(&stStuInfo, &stInfoID);
 			ShowStuInfo(stStuInfo, &stInfoID);
 			WriteToFile(fp, &stStuInfo, &stInfoID);
-			
+			system("pause");
+			system("cls");
 			break;
 		}
 		case 2:
 		{
 			iOption = WRONGOPT;
+			iID = 0;
+			ModifyUI(1);
 			fflush(stdin);
 			scanf("%d", &iID);
 			fflush(stdin);
-			ReadFromFile(fp, &stStuInfo, &stInfoID, iID);
+
+			if (ModifyStu(fp, &stInfoID, &stStuInfo, iID))
+			{
+				GetStuInfo(&stStuInfo, &stInfoID);
+				ShowStuInfo(stStuInfo, &stInfoID);
+				WriteToFile(fp, &stStuInfo, &stInfoID);
+				ModifyUI(4);
+			}
+			else
+			{
+				ModifyUI(5);
+			}
+			system("pause");
+			system("cls");
 			break;
 		}
 		case 3:
@@ -114,34 +130,53 @@ int main()
 				break;
 			}
 			}/*switch (iOption) end*/
-
+			system("pause");
+			system("cls");
 			break;
 		}
 		case 4:
 		{
 			iOption = WRONGOPT;
 			iID = 0;
+			DeleteUI(1);
 			fflush(stdin);
 			scanf("%d", &iID);
 			fflush(stdin);
-			Delete(fp, &stInfoID, &stStuInfo, iID);
+
+			if (Delete(fp, &stInfoID, &stStuInfo, iID))
+			{
+				DeleteUI(4);
+			}
+			else
+			{
+				DeleteUI(5);
+			}
+			system("pause");
+			system("cls");
 			break;
 		}
 		case 5:
 		{
 			iOption = WRONGOPT;
-
-			
+			Statistics(fp, &stInfoID, &stStuInfo);
+			system("pause");
+			system("cls");
 			break;
 		}
 		case 6:
 		{
 			iOption = WRONGOPT;
+			Storage(fp, &stInfoID, &stStuInfo);
+			system("pause");
+			system("cls");
 			break;
 		}
 		case 7:
 		{
 			ShowAllInfo(fp, &stInfoID, &stStuInfo);
+			system("pause");
+			system("cls");
+			break;
 		}
 		default:
 		{

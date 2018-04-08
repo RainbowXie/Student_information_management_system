@@ -91,26 +91,29 @@ int GetStuInfo(PSTUINFO* stStuInfo, PINFOID pstInfoID)
 
 int ShowStuInfo(PSTUINFO pstStuInfo, PINFOID pstInfoID)
 {
-	printf("%d\n", pstStuInfo->iStuID);
+	printf("\r\n\n");
+	printf("学号：%d\n", pstStuInfo->iStuID);
+	printf("名字：");
 	for (int i = 0; i < pstStuInfo->iNameLen; i++)
 	{
 		putchar(pstStuInfo->szStuName[i]);
 	}
+	printf("\r\n");
 	if (MAN == pstStuInfo->sGender)
 	{
-		printf("男\n");
+		printf("性别：男\r\n");
 	}
 	else if (WOMAN == pstStuInfo->sGender)
 	{
-		printf("女\n");
+		printf("性别：女\r\n");
 	}
 	else
 	{
-		printf("其他\n");
+		printf("性别：其他\r\n");
 	}
-	printf("%d.%d.%d\n", pstStuInfo->stStuBirth.iYear, pstStuInfo->stStuBirth.iMonth, pstStuInfo->stStuBirth.iDate);
-	printf("%f\n", pstStuInfo->fCScore);
-
+	printf("生日：%d.%d.%d\r\n", pstStuInfo->stStuBirth.iYear, pstStuInfo->stStuBirth.iMonth, pstStuInfo->stStuBirth.iDate);
+	printf("分数：%f\r\n", pstStuInfo->fCScore);
+	printf("\r\n\n");
 	return 0;
 }
 /*
@@ -154,6 +157,7 @@ void FindSpace(FILE* fp, PINFOID pstInfoID)
 	int iCount = 0;
 	int iLen = pstInfoID->m_iLen + INFOIDSIZ;
 	char ch = '\0';
+
 	rewind(fp);
 	ch = fgetc(fp);
 	pcTmp_ptr = fp->_base;
@@ -180,8 +184,82 @@ void FindSpace(FILE* fp, PINFOID pstInfoID)
 	return;
 }
 
+int ModifyStu(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID)
+{
+	int fd = 0;
+	int iRet = NSEARCH;
+	int iCh = -1;
+	char cTmpBuf = '\0';	//写入值
+	int iCount = 0;	//记录写入个数
+
+	rewind(fp);
+	while (iRet)
+	{
+		while (0 == (iCh = fgetc(fp)));
+		if (EOF == iCh)
+		{
+			//iRet = DELERR;
+			break;	//OUT
+		}
+		fseek(fp, -1, SEEK_CUR);	//多读了一位
+
+		fread(pstInfoID, INFOIDSIZ, 1, fp);	//读出学生信息编号大小
+		*pstStuInfo = (STUINFO *)malloc(pstInfoID->m_iLen);	//为学生信息分配空间
+		fread(*pstStuInfo, pstInfoID->m_iLen, 1, fp);	//从文件中读出学生信息
+		if ((*pstStuInfo)->iStuID != iID)
+		{
+			continue;
+		}
+		//修改选项//
+		while (iRet)
+		{
+			iRet = 0;
+			ModifyUI(0);
+			ShowStuInfo(*pstStuInfo, pstInfoID);
+			ModifyUI(2);
+			iRet = GetOption();
+			if (1 == iRet || 0 == iRet)
+			{
+				break;
+			}
+			ModifyUI(3);
+			system("pause");
+			system("cls");
+		}
+		if (0 == iRet)
+		{
+			break;
+		}
+
+		/**************删除************************/
+		
+		fseek(fp, -pstInfoID->m_iLen, SEEK_CUR);
+		fseek(fp, 0, SEEK_CUR);
+		for (int i = 0; i < pstInfoID->m_iLen; i++)
+		{
+			fputc(0, fp);
+		}
+		WriteInFile(fp);
+		fseek(fp, -8 - pstInfoID->m_iLen, SEEK_CUR);
+		for (int i = 0; i < INFOIDSIZ; i++)
+		{
+			fputc(0, fp);
+		}
+		WriteInFile(fp);
+		//break;
+	}
+	if (NULL != *pstStuInfo)
+	{
+		free(*pstStuInfo);
+		*pstStuInfo = NULL;
+	}
+	//********************增加*******************//
+	return iRet;
+}
+
 /*
-删除
+功能：按学号删除学生信息
+参数：fp是文件指针；pstInfoID是指向编号结构体的指针；pstStuInfo是指向学生信息结构体的指针的指针。iID是学生学号
 */
 int Delete(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID)
 {
@@ -209,10 +287,30 @@ int Delete(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID)
 		{
 			continue;
 		}
-		DeleteUI();
-		ShowStuInfo(pstStuInfo, pstInfoID);
+		//删除选项//
+		while (iRet)
+		{ 
+			iRet = 0;
+			DeleteUI(0);
+			ShowStuInfo(*pstStuInfo, pstInfoID);
+			DeleteUI(2);
+			iRet = GetOption();
+			if (1 == iRet || 0 == iRet)
+			{
+				break;
+			}
+			DeleteUI(3);
+			system("pause");
+			system("cls");
+		}
+		if (0 == iRet)
+		{
+			break;
+		}
+
 		/*删除*/
 		/***************************************/
+		fseek(fp, -pstInfoID->m_iLen, SEEK_CUR);
 		fseek(fp, 0, SEEK_CUR);
 		for (int i = 0; i < pstInfoID->m_iLen; i++)
 		{
@@ -226,9 +324,13 @@ int Delete(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID)
 		}
 		WriteInFile(fp);
 		//break;
-	}
-			
-		
+		if (NULL != *pstStuInfo)
+		{
+			free(*pstStuInfo);
+			*pstStuInfo = NULL;
+		}
+	}/*while (iRet) end*/
+
 	return iRet;
 }
 
@@ -301,7 +403,6 @@ void InitFile(FILE** fp)
 功能：关闭文件
 参数：指向文件指针的指针
 */
-
 void CloseFile(FILE** fp)
 {
 
@@ -339,7 +440,14 @@ int ShowAllInfo(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo)
 			*pstStuInfo = (STUINFO *)malloc(pstInfoID->m_iLen);
 			fread(*pstStuInfo, pstInfoID->m_iLen, 1, fp);
 			ShowStuInfo(*pstStuInfo, pstInfoID);
+			
+			if (NULL != *pstStuInfo)
+			{
+				free(*pstStuInfo);
+				*pstStuInfo = NULL;
+			}
 	}
+
 	return 0;
 }
 
@@ -505,4 +613,153 @@ void WriteInFile(FILE* fp)
 	fflush(fp);
 	fd = _fileno(fp); //获取文件描述符
 	_commit(fd); //强制写硬盘
+}
+/*
+功能：统计最高分、最低分、总成绩、平均成绩
+*/
+void Statistics(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo)
+{
+	float iSum = 0;
+	float iHighest = 0;
+	float iLowest = 0;
+	int iStuCount = 0;
+	int iRet = NSEARCH;
+	int iCh = -1;
+	int iCount = 0;	//记录写入个数
+	rewind(fp);
+	while (iRet)
+	{
+		while (0 == (iCh = fgetc(fp)));
+		if (EOF == iCh)
+		{
+			//iRet = DELERR;
+			break;
+		}
+		fseek(fp, -1, SEEK_CUR);	//多读了一位
+
+		fread(pstInfoID, INFOIDSIZ, 1, fp);	//读出学生信息编号大小
+		*pstStuInfo = (STUINFO *)malloc(pstInfoID->m_iLen);
+		fread(*pstStuInfo, pstInfoID->m_iLen, 1, fp);	//读出学生信息
+		//ShowStuInfo(*pstStuInfo, pstInfoID);
+
+		//****************Statistics******************//
+		iSum += (*pstStuInfo)->fCScore;
+		iCount++;
+		if (iHighest < (*pstStuInfo)->fCScore)
+		{
+			iHighest = (*pstStuInfo)->fCScore;
+		}
+		
+		if (1 == iCount)
+		{
+			iLowest = (*pstStuInfo)->fCScore;
+		}
+		else if (iLowest > (*pstStuInfo)->fCScore)
+		{
+			iLowest = (*pstStuInfo)->fCScore;
+		}
+
+		if (NULL != *pstStuInfo)
+		{
+			free(*pstStuInfo);
+			*pstStuInfo = NULL;
+		}
+	}/*while (iRet) end*/
+	printf("本班总分为：%.3f\r\n", iSum);
+	printf("本班平均分为：%.3f\r\n", iSum / iCount);
+	printf("本班最高分为：%.3f\r\n", iHighest);
+	printf("本班最低分为：%.3f\r\n", iLowest);
+
+}
+
+void Storage(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo)
+{
+	int ich = 0;
+	int iCount = 0;
+	int iOption = 0;
+	rewind(fp);
+	while (EOF != (ich = fgetc(fp)))
+	{
+		if (ich == 0)
+		{
+			putc('-', stdout);
+			iCount++;
+		}
+		else if (0 != ich)
+		{
+			putc('+', stdout);
+			iCount = 0;
+		}
+		if (200 <= iCount)
+		{
+			printf("\r\n\n");
+			break;
+		}
+	}
+	/**********************碎片整理******************/
+	while (1)
+	{
+		StorageUI(0);
+		iOption = GetOption();
+		if (1 == iOption || 0 == iOption)
+		{
+			break;
+		}
+		ModifyUI(3);
+		system("pause");
+		system("cls");
+	}
+	if (0 == iOption)
+	{
+		return;
+	}
+	{
+		int fd = 0;
+		int iRet = NSEARCH;
+		int iCh = -1;
+		char cTmpBuf = '\0';	//写入值
+		int iCount = 0;	//记录写入个数
+
+		rewind(fp);
+		while (iRet)
+		{
+			while (0 == (iCh = fgetc(fp)));
+			if (EOF == iCh)
+			{
+				//iRet = DELERR;
+				break;	//OUT
+			}
+			fseek(fp, -1, SEEK_CUR);	//多读了一位
+
+			fread(pstInfoID, INFOIDSIZ, 1, fp);	//读出学生信息编号大小
+			*pstStuInfo = (STUINFO *)malloc(pstInfoID->m_iLen);	//为学生信息分配空间
+			fread(*pstStuInfo, pstInfoID->m_iLen, 1, fp);	//从文件中读出学生信息
+			
+			/**************删除************************/
+
+			fseek(fp, -pstInfoID->m_iLen, SEEK_CUR);
+			fseek(fp, 0, SEEK_CUR);
+			for (int i = 0; i < pstInfoID->m_iLen; i++)
+			{
+				fputc(0, fp);
+			}
+			WriteInFile(fp);
+			fseek(fp, -8 - pstInfoID->m_iLen, SEEK_CUR);
+			for (int i = 0; i < INFOIDSIZ; i++)
+			{
+				fputc(0, fp);
+			}
+			WriteInFile(fp);
+			//break;
+			WriteToFile(fp, pstStuInfo, pstInfoID);
+		}
+
+
+		/*********************释放************************/
+		if (NULL != *pstStuInfo)
+		{
+			free(*pstStuInfo);
+			*pstStuInfo = NULL;
+		}
+	}
 }
