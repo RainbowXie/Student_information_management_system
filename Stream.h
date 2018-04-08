@@ -1,6 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
-
-#include <io.h>
+# include <io.h>
 # include <stdio.h>
 # include <string.h>
 # define EXIT 0
@@ -11,6 +10,10 @@
 # define WRONGSTUINFO -1
 # endif // !STUINFO
 
+# ifndef NSEARCH
+# define NSEARCH 6
+# endif	// !NSEARCH
+
 # ifndef FWRITE
 # define FWRITE -4
 # endif // !FWRITE
@@ -18,10 +21,10 @@
 # define MAN 1
 # define WOMAN 2
 # define UNKNOWN 3
-
+extern int iSID;
 enum emStuInfo
 {
-	STUID,
+	STUID = 1,	
 	STUNAME,
 	STUBIRTH,
 	/*STUPHNUB,*/
@@ -30,6 +33,12 @@ enum emStuInfo
 }emStuInfo;
 
 
+struct tagSTUBIRTH 
+{
+	int iYear;
+	int iMonth;
+	int iDate;
+}stStuBirth;
 /*
 
 */
@@ -38,12 +47,7 @@ typedef struct tagSTUINFO
 	int iStuID;
 	float fCScore;
 	short int sGender;
-	struct
-	{
-		int iYear;
-		int iMonth;
-		int iDate;
-	}stStuBirth;
+	struct tagSTUBIRTH stStuBirth;
 	int iNameLen;
 	/*int iPhoneLen;*/
 	char szStuName[1];
@@ -71,4 +75,9 @@ void ReadFromFile(FILE* fp, PSTUINFO* stStuInfo, PINFOID pstInfoID, int iID2);
 void FindSpace(FILE* fp, PINFOID pstInfoID);
 void CloseFile(FILE** fp);
 
-int Delete(FILE *fp, PINFOID pstInfoID, int iID2);
+int Delete(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID);
+int SearchByStr(void* strInfo, FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo, int iOption);
+
+void WriteInFile(FILE* fp);
+
+int ShowAllInfo(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo);

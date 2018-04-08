@@ -14,6 +14,7 @@ int MainInterface(void)
 	printf("      4. 删除学生信息\n");
 	printf("      5. 统计C语言成绩\n");
 	printf("      6. 存储信息\n");
+	printf("      7. 显示全部学生信息\n");
 	printf("      0. 退出\n");
 	printf("===================================\n");
 	printf("请选择：");
@@ -28,6 +29,11 @@ void ErrProc(int ErrNub)
 {
 	switch (ErrNub)
 	{
+	case NSEARCH:
+	{
+		printf("没找到(⊙﹏⊙)\n");
+		break;
+	}
 	case WRONGOPT:
 	{
 		printf("呃...选错啦ㄟ( ▔, ▔ )ㄏ\n");
@@ -75,13 +81,29 @@ void GetStuInfoUI(enum emStuInfo emStuType)
 	}
 	case STUBIRTH:
 	{
-		printf("请输入学生生日，格式为xxxx-xx-xx：");
+		printf("请输入学生生日，格式为xxxx.xx.xx：");
 		break;
 	}
 	case STUGENDER:
 	{
-		printf("请输入学生性别：");
+		printf("请输入学生性别(男/女/其他)：");
 		break;
 	}
 	}
+}
+void SearchUI(int iOption)
+{
+	printf("1.按学号查找\n");
+	printf("2.按姓名查找\n");
+	printf("3.按出生日期查找\n");
+	printf("4.按分数查找\n");
+	printf("5.按性别查找\n");
+	printf("6.其他键返回\n");
+	printf("===================================\n");
+	printf("请选择：");
+}
+
+void DeleteUI()
+{
+	printf("您要删除的学生是：");
 }

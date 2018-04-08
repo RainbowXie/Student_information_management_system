@@ -24,8 +24,12 @@
 # define WRONGSTUINFO -1
 # endif // !STUINFO
 
+# ifndef NSEARCH
+# define NSEARCH 6
+# endif	// !NSEARCH
+
 int MainInterface(void);
 void ErrProc(int ErrNub);
 void GetStuInfoUI(enum emStuInfo emStuType);
-void MyErrProc();
-
+void SearchUI(int iOption);
+void DeleteUI();

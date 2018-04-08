@@ -1,8 +1,6 @@
 # include "Stream.h"
 # include "UI.h"
 
-int iSID = 1;	//学生结构体编号
-
 /*
 功能：获取选项
 返回值：如果获取正确选项，返回选项值，如果失败，返回WRONGOPT.
@@ -10,8 +8,10 @@ int iSID = 1;	//学生结构体编号
 int GetOption()
 {
 	int iRet = WRONGOPT;
+	fflush(stdin);
 	scanf("%1d", &iRet);
-	if (iRet > 6 || iRet < 0)
+	fflush(stdin);
+	if (iRet > 7 || iRet < 0)
 	{
 		iRet = WRONGOPT;
 	}
@@ -36,12 +36,17 @@ int GetStuInfo(PSTUINFO* stStuInfo, PINFOID pstInfoID)
 	int iRet = WRONGSTUINFO;
 
 	GetStuInfoUI(STUID);
+	fflush(stdin);
 	scanf("%3d", &iTmpStuID);
+	fflush(stdin);
 	GetStuInfoUI(STUNAME);
+	fflush(stdin);
 	scanf("%1023s", szTmpStuName);
-
+	fflush(stdin);
 	GetStuInfoUI(STUGENDER);
-	scanf("%s", szTmpGender);
+	fflush(stdin);
+	scanf("%7s", szTmpGender);
+	fflush(stdin);
 	if (!strcmp(szTmpGender, "男"))
 	{
 		sTmpGender = MAN;
@@ -56,12 +61,16 @@ int GetStuInfo(PSTUINFO* stStuInfo, PINFOID pstInfoID)
 	}
 
 	GetStuInfoUI(STUBIRTH);
-	scanf("%d-%d-%d", &iTmpYear, &iTmpMonth, &iTmpDate);
+	fflush(stdin);
+	scanf("%5d.%2d.%2d", &iTmpYear, &iTmpMonth, &iTmpDate);
+	fflush(stdin);
 	/*GetStuInfoUI(STUPHNUB);
 	scanf("%31s", szTmpStuPhNub);*/
 	GetStuInfoUI(STUCSCOR);
+	fflush(stdin);
 	scanf("%7f", &fTmpCScore);
-	
+	fflush(stdin);
+
 	pstInfoID->m_iID = iSID++;
 	pstInfoID->m_iLen = sizeof(STUINFO) + strlen(szTmpStuName) + 1;
 
@@ -125,9 +134,7 @@ int WriteToFile(FILE *fp, PSTUINFO* pstStuInfo, PINFOID pstInfoID)
 		iRet = FWRITE;
 		goto ERR_PROC;
 	}
-	fflush(fp);
-	fd = _fileno(fp); //获取文件描述符
-	_commit(fd); //强制写硬盘
+	WriteInFile(fp);
 
 	FlushStu(pstStuInfo, pstInfoID);
 
@@ -160,12 +167,12 @@ void FindSpace(FILE* fp, PINFOID pstInfoID)
 		else
 		{
 			iCount = 0;
-			pcTmp_ptr = fp->_ptr + 1;
+			pcTmp_ptr = fp->_ptr;
 		}
 		if (iCount >= iLen)
 		{
 			i = (int)pcTmp_ptr - (int)fp->_base;
-			i = fseek(fp, i, SEEK_SET);
+			fseek(fp, i, SEEK_SET);
 			break;
 		}
 		ch = fgetc(fp);
@@ -173,57 +180,55 @@ void FindSpace(FILE* fp, PINFOID pstInfoID)
 	return;
 }
 
-int Delete(FILE *fp,PINFOID pstInfoID, int iID2)
+/*
+删除
+*/
+int Delete(FILE *fp, PINFOID pstInfoID, PSTUINFO* pstStuInfo, int iID)
 {
 	int fd = 0;
-	int iRet = 0;
-	char ch = -1;
+	int iRet = NSEARCH;
+	int iCh = -1;
 	char cTmpBuf = '\0';	//写入值
 	int iCount = 0;	//记录写入个数
 
 	rewind(fp);
-	while (1)
+	while (iRet)
 	{
-		while ('\0' == (ch = fgetc(fp)));
-		fseek(fp, -1, SEEK_CUR);	//多读了一位
-		if (EOF == ch)
+		while (0 == (iCh = fgetc(fp)));
+		if (EOF == iCh)
 		{
-			iRet = DELERR;
-			break;
+			//iRet = DELERR;
+			break;	//OUT
 		}
-		
+		fseek(fp, -1, SEEK_CUR);	//多读了一位
+
 		fread(pstInfoID, INFOIDSIZ, 1, fp);	//读出学生信息编号大小
-		if (iID2 != pstInfoID->m_iID)
+		*pstStuInfo = (STUINFO *)malloc(pstInfoID->m_iLen);	//为学生信息分配空间
+		fread(*pstStuInfo, pstInfoID->m_iLen, 1, fp);	//从文件中读出学生信息
+		if ((*pstStuInfo)->iStuID != iID)
 		{
-			fseek(fp, pstInfoID->m_iLen, SEEK_CUR);
 			continue;
 		}
-		else
+		DeleteUI();
+		ShowStuInfo(pstStuInfo, pstInfoID);
+		/*删除*/
+		/***************************************/
+		fseek(fp, 0, SEEK_CUR);
+		for (int i = 0; i < pstInfoID->m_iLen; i++)
 		{
-			//while (pstInfoID->m_iLen == (iCount = fwrite(&cTmpBuf, 1, pstInfoID->m_iLen, fp)))
-			//{
-			//	fflush(fp);
-			//}
-			fseek(fp, 0, SEEK_CUR);
-			for (int i = 0; i < pstInfoID->m_iLen; i++)
-			{
-				fputc(0, fp);
-			}
-			fflush(fp);
-			fd = _fileno(fp); //获取文件描述符
-			iRet = _commit(fd); //强制写硬盘
-			fseek(fp, -8 - pstInfoID->m_iLen, SEEK_CUR);
-			for (int i = 0; i < INFOIDSIZ; i++)
-			{
-				fputc(0, fp);
-			}
-			fflush(fp);
-			fd = _fileno(fp); //获取文件描述符
-			_commit(fd); //强制写硬盘
-			break;
+			fputc(0, fp);
 		}
+		WriteInFile(fp);
+		fseek(fp, -8 - pstInfoID->m_iLen, SEEK_CUR);
+		for (int i = 0; i < INFOIDSIZ; i++)
+		{
+			fputc(0, fp);
+		}
+		WriteInFile(fp);
+		//break;
 	}
-
+			
+		
 	return iRet;
 }
 
@@ -252,13 +257,14 @@ void ReadFromFile(FILE* fp, PSTUINFO* stStuInfo, PINFOID pstInfoID, int iID2)
 		/*while ('\0' == fgetc(fp));*/
 		while ('\0' == (ch = fgetc(fp)));
 		fseek(fp, -1, SEEK_CUR);	//多读了一位
+
 		if (EOF == ch)
 		{
 			iRet = DELERR;
 			break;
 		}
 		fread(pstInfoID, INFOIDSIZ, 1, fp);
-		if (iID2 != pstInfoID->m_iID)
+		if (iID2 != pstInfoID->m_iID)	//如果编号不对，就往后跳学生信息结构体个长度
 		{
 			fseek(fp, pstInfoID->m_iLen, SEEK_CUR);
 			continue;
@@ -304,4 +310,199 @@ void CloseFile(FILE** fp)
 		fclose(*fp);
 		*fp = NULL;
 	}
+}
+
+/*
+功能：显示所有学生信息
+参数：fp是文件指针；pstInfoID是指向编号结构体的指针；pstStuInfo是指向学生信息结构体的指针的指针。
+*/
+int ShowAllInfo(FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo)
+{
+	int fd = 0;
+	int iRet = NSEARCH;
+	int iCh = -1;
+	char cTmpBuf = '\0';	//写入值
+	int iCount = 0;	//记录写入个数
+
+	rewind(fp);
+	while (iRet)
+	{
+			while (0 == (iCh = fgetc(fp)));
+			if (EOF == iCh)
+			{
+				//iRet = DELERR;
+				break;
+			}
+			fseek(fp, -1, SEEK_CUR);	//多读了一位
+	
+			fread(pstInfoID, INFOIDSIZ, 1, fp);	//读出学生信息编号大小
+			*pstStuInfo = (STUINFO *)malloc(pstInfoID->m_iLen);
+			fread(*pstStuInfo, pstInfoID->m_iLen, 1, fp);
+			ShowStuInfo(*pstStuInfo, pstInfoID);
+	}
+	return 0;
+}
+
+
+/*
+功能：根据学生信息搜索学生，并显示。
+参数：strInfo是无符号指针，接收所有输入的搜索关键字，pstInfoID是指向编号结构体的指针；pstStuInfo是指向学生信息结构体的指针的指针，iOption是选项
+返回值：如果找到，返回找到的相同信息的数量，如果没找到，返回NSEARCH。
+*/
+int SearchByStr(void* strInfo, FILE *fp, PINFOID pstInfoID, PSTUINFO *pstStuInfo, int iOption)
+{
+	int fd = 0;
+	int iRet = NSEARCH;
+	int iCh = -1;
+	char cTmpBuf = '\0';	//写入值
+	int iCount = 0;	//记录写入个数
+
+	rewind(fp);
+	while (iRet)
+	{
+		while (0 == (iCh = fgetc(fp)));
+		if (EOF == iCh)
+		{
+			//iRet = DELERR;
+			break;
+		}
+		fseek(fp, -1, SEEK_CUR);	//多读了一位
+		//if (EOF == ch)
+		//{
+		//	//iRet = DELERR;
+		//	break;
+		//}
+
+		fread(pstInfoID, INFOIDSIZ, 1, fp);	//读出学生信息编号大小
+		*pstStuInfo = (STUINFO *)malloc(pstInfoID->m_iLen);
+		fread(*pstStuInfo, pstInfoID->m_iLen, 1, fp);
+		switch (iOption)
+		{
+		case STUID:
+		{
+			
+			if (*(int*)strInfo == (*pstStuInfo)->iStuID)
+			{
+				iRet++;
+				ShowStuInfo(*pstStuInfo, pstInfoID);
+				//iRet = 0;
+			}
+
+			break;
+		}
+		case STUNAME:
+		{
+			if (strstr(((*pstStuInfo)->szStuName), ((char*)strInfo)))
+			{
+				iRet++;
+				ShowStuInfo(*pstStuInfo, pstInfoID);
+			}
+			//(*pstStuInfo)->szStuName)[i]串，strInfo关键字
+			//for (int i = 0; ((*pstStuInfo)->szStuName)[i] != '\0'; i++)
+			//{
+			//	int k = 0;
+			//	for (int j = i, k = 0; ((/*char*/short int*)strInfo)[k] != '\0' && ((*pstStuInfo)->szStuName)[i] == ((short int/*char*/*)strInfo)[k]; j++, k++);
+
+			//	if (k > 0 && ((/*char*/short int*)strInfo)[k] != '\0')
+			//	{
+			//		ShowStuInfo(*pstStuInfo, pstInfoID);
+			//		break;
+			//	}
+			//}
+			//if (0 != iRet)
+			//{
+			//	free(*pstStuInfo);
+			//	*pstStuInfo = NULL;
+			//}
+			break;
+		}
+		case STUBIRTH:
+		{
+			if (((struct tagSTUBIRTH *)strInfo)->iYear == (*pstStuInfo)->stStuBirth.iYear &&
+				((struct tagSTUBIRTH *)strInfo)->iMonth == (*pstStuInfo)->stStuBirth.iMonth &&
+				((struct tagSTUBIRTH *)strInfo)->iDate == (*pstStuInfo)->stStuBirth.iDate)
+			{
+				iRet++;
+				ShowStuInfo(*pstStuInfo, pstInfoID);
+			}
+			
+			break;
+		}
+		case STUCSCOR:
+		{
+			if (*(float*)strInfo == (*pstStuInfo)->fCScore)
+			{
+				iRet++;
+				ShowStuInfo(*pstStuInfo, pstInfoID);
+				//iRet = 0;
+			}
+
+			break;
+		}
+		case STUGENDER:
+		{
+			if (*(short int*)strInfo == (*pstStuInfo)->sGender)
+			{
+				iRet++;
+				ShowStuInfo(*pstStuInfo, pstInfoID);
+				//iRet = 0;
+			}
+			
+			break;
+		}
+		}/*switch(iOption) end*/
+
+		//if (iID2 != pstInfoID->m_iID)
+		//{
+		//	fseek(fp, pstInfoID->m_iLen, SEEK_CUR);
+		//	continue;
+		//}
+		//else
+		//{
+		//	while (pstInfoID->m_iLen == (iCount = fwrite(&cTmpBuf, 1, pstInfoID->m_iLen, fp)))
+		//	{
+		//		fflush(fp);
+		//	}
+		//	fseek(fp, 0, SEEK_CUR);
+		//	for (int i = 0; i < pstInfoID->m_iLen; i++)
+		//	{
+		//		fputc(0, fp);
+		//	}
+
+
+		//	fflush(fp);
+		//	fd = _fileno(fp); //获取文件描述符
+		//	iRet = _commit(fd); //强制写硬盘
+		//	fseek(fp, -8 - pstInfoID->m_iLen, SEEK_CUR);
+			//for (int i = 0; i < INFOIDSIZ; i++)
+			//{
+			//	fputc(0, fp);
+			//}
+			//fflush(fp);
+			//fd = _fileno(fp); //获取文件描述符
+			//_commit(fd); //强制写硬盘
+		//	break;
+		if (NULL != *pstStuInfo)
+		{
+			free(*pstStuInfo);
+			*pstStuInfo = NULL;
+		}
+	}/*while(1) end*/
+	if (NSEARCH == iRet)
+	{
+		ErrProc(iRet);
+	}
+
+	return iRet;
+}
+ 
+/*
+强制将缓冲区文件写入硬盘
+*/
+void WriteInFile(FILE* fp)
+{
+	int fd = 0;
+	fflush(fp);
+	fd = _fileno(fp); //获取文件描述符
+	_commit(fd); //强制写硬盘
 }
